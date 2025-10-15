@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Nav from './Nav'
+import Carousel from './Carousel'
 import { categories } from '../category'
 import CategoryCard from './CategoryCard'
 import { FaCircleChevronLeft } from "react-icons/fa6";
@@ -82,10 +83,11 @@ setRightButton(element.scrollLeft+element.clientWidth<element.scrollWidth)
   return (
     <div className='w-screen min-h-screen flex flex-col gap-8 items-center bg-gradient-to-br from-gray-50 to-white overflow-y-auto fade-in'>
       <Nav />
+      <Carousel />
 
       {searchItems && searchItems.length>0 && (
         <div className='w-full max-w-7xl flex flex-col gap-6 items-start p-6 bg-white shadow-xl rounded-3xl mt-4 border border-gray-100 mx-4'>
-<h1 className='text-gray-900 text-3xl font-bold border-b border-gray-200 pb-3'>
+<h1 className='text-gray-900 text-3xl font-bold border-b border-gray-200 pb-3 font-poppins'>
   Search Results
 </h1>
 <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
@@ -98,7 +100,7 @@ setRightButton(element.scrollLeft+element.clientWidth<element.scrollWidth)
 
       <div className="w-full max-w-7xl flex flex-col gap-8 items-start px-6">
 
-  <h1 className='text-gray-800 text-4xl font-bold gradient-text'>Discover Fashion Trends</h1>
+  <h1 className='text-gray-800 text-4xl font-bold gradient-text font-poppins'>Discover Trends</h1>
         <div className='w-full relative'>
           {showLeftCateButton &&  <button className='absolute left-0 top-1/2 -translate-y-1/2 bg-white text-indigo-600 p-3 rounded-full shadow-lg hover:bg-indigo-50 z-10 border border-gray-200' onClick={()=>scrollHandler(cateScrollRef,"left")}><FaCircleChevronLeft />
           </button>}
@@ -117,7 +119,7 @@ setRightButton(element.scrollLeft+element.clientWidth<element.scrollWidth)
       </div>
 
       <div className='w-full max-w-7xl flex flex-col gap-8 items-start px-6'>
- <h1 className='text-gray-800 text-4xl font-bold'>Top Fashion Shops in <span className='gradient-text'>{currentCity}</span></h1>
+ <h1 className='text-gray-800 text-4xl font-bold font-poppins'>Top Shops Near <span className='gradient-text'>{currentCity}</span></h1>
  <div className='w-full relative'>
           {showLeftShopButton &&  <button className='absolute left-0 top-1/2 -translate-y-1/2 bg-white text-indigo-600 p-3 rounded-full shadow-lg hover:bg-indigo-50 z-10 border border-gray-200' onClick={()=>scrollHandler(shopScrollRef,"left")}><FaCircleChevronLeft />
           </button>}
@@ -136,8 +138,8 @@ setRightButton(element.scrollLeft+element.clientWidth<element.scrollWidth)
       </div>
 
       <div className='w-full max-w-7xl flex flex-col gap-8 items-start px-6 pb-8'>
-  <h1 className='text-gray-800 text-4xl font-bold'>
-   Trending Fashion Items
+  <h1 className='text-gray-800 text-4xl font-bold font-poppins'>
+   Trending Items
   </h1>
 
 <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
