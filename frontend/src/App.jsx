@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import SignUp from './pages/SignUp'
 import SignIn from './pages/SignIn'
@@ -22,15 +22,14 @@ import useUpdateLocation from './hooks/useUpdateLocation'
 import TrackOrderPage from './pages/TrackOrderPage'
 import Shop from './pages/Shop'
 import Profile from './pages/Profile'
-import { useEffect } from 'react'
 import { io } from 'socket.io-client'
-import { setSocket } from './redux/userSlice'
+import { setSocket, setTheme } from './redux/userSlice'
 import Footer from './components/Footer'
 import Nav from './components/Nav'
 
 export const serverUrl="http://localhost:8000"
 function App() {
-    const {userData}=useSelector(state=>state.user)
+    const {userData, theme}=useSelector(state=>state.user)
     const dispatch=useDispatch()
   useGetCurrentUser()
 useUpdateLocation()
@@ -53,8 +52,18 @@ return ()=>{
 }
   },[userData?._id])
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    dispatch(setTheme(savedTheme))
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [dispatch])
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-dark-primary' : ''}`}>
       {userData && <Nav />}
       <Routes>
         <Route path='/signup' element={!userData?<SignUp/>:<Navigate to={"/"}/>}/>
