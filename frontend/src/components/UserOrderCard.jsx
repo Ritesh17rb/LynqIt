@@ -1,11 +1,15 @@
 import axios from 'axios'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { updateRealtimeOrderStatus } from '../redux/userSlice'
 import { serverUrl } from '../App'
 
 function UserOrderCard({ data }) {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const [selectedRating, setSelectedRating] = useState({})//itemId:rating
+    const [isCancelling, setIsCancelling] = useState(false)
 
     const formatDate = (dateString) => {
         const date = new Date(dateString)
@@ -25,6 +29,29 @@ function UserOrderCard({ data }) {
             }))
         } catch (error) {
             console.log(error)
+        }
+    }
+
+    const handleCancelOrder = async (shopId) => {
+        if (!confirm('Are you sure you want to cancel this order?')) return
+
+        setIsCancelling(true)
+        try {
+            const response = await axios.post(`${serverUrl}/api/order/cancel-order/${data._id}/${shopId}`, {}, { withCredentials: true })
+            if (response.status === 200) {
+                // Update local state
+                dispatch(updateRealtimeOrderStatus({
+                    orderId: data._id,
+                    shopId: shopId,
+                    status: 'cancelled'
+                }))
+                alert('Order cancelled successfully')
+            }
+        } catch (error) {
+            console.error('Cancel order error:', error)
+            alert(error.response?.data?.message || 'Failed to cancel order')
+        } finally {
+            setIsCancelling(false)
         }
     }
 
@@ -48,12 +75,12 @@ function UserOrderCard({ data }) {
             </div>
 
             {data.shopOrders.map((shopOrder, index) => (
-                <div className='"border rounded-lg p-3 bg-[#fffaf7] space-y-3' key={index}>
+                <div className="border rounded-lg p-3 bg-[#fffaf7] space-y-3" key={index}>
                     <p>{shopOrder.shop.name}</p>
 
                     <div className='flex space-x-4 overflow-x-auto pb-2'>
                         {shopOrder.shopOrderItems.map((item, index) => (
-                            <div key={index} className='flex-shrink-0 w-40 border rounded-lg p-2 bg-white"'>
+                            <div key={index} className="flex-shrink-0 w-40 border rounded-lg p-2 bg-white">
                                 <img src={item.item.image} alt="" className='w-full h-24 object-cover rounded' />
                                 <p className='text-sm font-semibold mt-1'>{item.name}</p>
                                 {item.item.brand && <p className='text-xs text-gray-500'>Brand: {item.item.brand}</p>}
@@ -81,7 +108,19 @@ function UserOrderCard({ data }) {
 
             <div className='flex justify-between items-center border-t pt-2'>
                 <p className='font-semibold'>Total: ₹{data.totalAmount}</p>
-                <button className='bg-[#ff4d2d] hover:bg-[#e64526] text-white px-4 py-2 rounded-lg text-sm' onClick={() => navigate(`/track-order/${data._id}`)}>Track Order</button>
+                <div className='flex gap-2'>
+                    {/* Show cancel button only for pending/preparing orders */}
+                    {data.shopOrders.some(shopOrder => ['pending', 'preparing'].includes(shopOrder.status)) && (
+                        <button
+                            className='bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50'
+                            onClick={() => handleCancelOrder(data.shopOrders[0].shop._id)}
+                            disabled={isCancelling}
+                        >
+                            {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+                        </button>
+                    )}
+                    <button className='bg-[#ff4d2d] hover:bg-[#e64526] text-white px-4 py-2 rounded-lg text-sm' onClick={() => navigate(`/track-order/${data._id}`)}>Track Order</button>
+                </div>
             </div>
 
 

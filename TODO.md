@@ -1,8 +1,19 @@
-# TODO: Add Tailwind 3 Image Carousel to Homepage and Update Text Styles
+# TODO: Implement Orders Section with Past/Pending Separation and Cancel Functionality
 
 ## Steps to Complete:
-- [x] Step 1: Update frontend/src/index.css to import Poppins font from Google Fonts.
-- [x] Step 2: Create frontend/src/components/Carousel.jsx with a responsive Tailwind 3 image carousel using existing assets (cloth1.jpg, cloth2.jpg, cloth3.jpg, cloth4.jpg, camera1.jpg, laptop1.jpg, phone1.jpg, shoes1.jpg).
-- [x] Step 3: Update frontend/src/components/UserDashboard.jsx to import and add the Carousel component at the top, right after Nav.
-- [x] Step 4: Update text styles in UserDashboard.jsx to use Poppins font and enhance styling (e.g., gradients, shadows, better colors).
-- [ ] Step 5: Test the changes by running the frontend and verifying responsiveness and styling.
+
+### Backend Changes
+- [x] Update backend/models/order.model.js: Add "cancelled" to shopOrderSchema status enum
+- [x] Add cancelOrder controller in backend/controllers/order.controllers.js: Update shopOrder status to "cancelled", handle refunds if online payment
+- [x] Add POST /cancel-order/:orderId/:shopId route in backend/routes/order.routes.js
+- [x] Prevent status changes on completed orders (delivered or cancelled) in updateOrderStatus
+
+### Frontend Changes
+- [x] Modify frontend/src/pages/MyOrders.jsx: Separate orders into "Past Orders" (delivered, cancelled) and "Pending Orders" (pending, preparing, out of delivery) sections
+- [x] Update frontend/src/components/UserOrderCard.jsx: Add "Cancel Order" button for pending orders, call cancel API on click
+- [x] Update frontend/src/redux/userSlice.js: Add action to update order status on cancel
+
+### Testing
+- [ ] Test order separation in UI
+- [ ] Test cancel functionality and backend logic
+- [ ] Test that status changes are blocked for completed orders

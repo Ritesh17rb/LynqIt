@@ -17,6 +17,21 @@
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+.dark {
+  --primary: #818cf8; /* Indigo lighter for dark */
+  --primary-dark: #6366f1;
+  --primary-light: #c7d2fe;
+  --secondary: #fbbf24; /* Amber lighter for dark */
+  --accent: #34d399; /* Emerald lighter for dark */
+  --background: #1a1a1a; /* Dark primary */
+  --background-dark: #2a2a2a; /* Dark secondary */
+  --text-primary: #ffffff; /* Dark text */
+  --text-secondary: #cccccc; /* Dark text secondary */
+  --border: #3a3a3a; /* Dark accent */
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
 * {
  /* ya scroll */
   scrollbar-width: none; /* Firefox */
@@ -34,6 +49,7 @@ body {
   background: linear-gradient(135deg, var(--background) 0%, var(--background-dark) 100%);
   color: var(--text-primary);
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 /* Modern Button Styles */

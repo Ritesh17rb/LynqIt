@@ -100,7 +100,7 @@ export const placeOrder = async (req, res) => {
                         _id: newOrder._id,
                         paymentMethod: newOrder.paymentMethod,
                         user: newOrder.user,
-                        shopOrders: shopOrder,
+                        shopOrders: [shopOrder],
                         createdAt: newOrder.createdAt,
                         deliveryAddress: newOrder.deliveryAddress,
                         payment: newOrder.payment
@@ -148,7 +148,7 @@ export const verifyPayment = async (req, res) => {
                         _id: order._id,
                         paymentMethod: order.paymentMethod,
                         user: order.user,
-                        shopOrders: shopOrder,
+                        shopOrders: [shopOrder],
                         createdAt: order.createdAt,
                         deliveryAddress: order.deliveryAddress,
                         payment: order.payment
@@ -192,7 +192,7 @@ export const getMyOrders = async (req, res) => {
                 _id: order._id,
                 paymentMethod: order.paymentMethod,
                 user: order.user,
-                shopOrders: order.shopOrders.find(o => o.owner._id == req.userId),
+                shopOrders: [order.shopOrders.find(o => o.owner._id == req.userId)],
                 createdAt: order.createdAt,
                 deliveryAddress: order.deliveryAddress,
                 payment: order.payment
@@ -200,6 +200,15 @@ export const getMyOrders = async (req, res) => {
 
 
             return res.status(200).json(filteredOrders)
+        } else if (user.role == "deliveryBoy") {
+            const orders = await Order.find({ "shopOrders.assignedDeliveryBoy": req.userId, "shopOrders.status": "delivered" })
+                .sort({ createdAt: -1 })
+                .populate("shopOrders.shop", "name")
+                .populate("shopOrders.owner", "name email mobile")
+                .populate("shopOrders.shopOrderItems.item", "name image price")
+                .populate("user", "fullName email mobile")
+
+            return res.status(200).json(orders)
         }
 
     } catch (error) {
@@ -218,6 +227,12 @@ export const updateOrderStatus = async (req, res) => {
         if (!shopOrder) {
             return res.status(400).json({ message: "shop order not found" })
         }
+
+        // Prevent status changes on completed orders (delivered or cancelled)
+        if (shopOrder.status === "delivered" || shopOrder.status === "cancelled") {
+            return res.status(400).json({ message: "Cannot change status of a completed order" })
+        }
+
         shopOrder.status = status
         let deliveryBoysPayload = []
         if (status == "out of delivery" && !shopOrder.assignment) {
@@ -520,6 +535,11 @@ export const markAsDelivered = async (req, res) => {
             return res.status(403).json({ message: "You are not authorized to mark this order as delivered" })
         }
 
+        // Prevent re-marking as delivered
+        if (shopOrder.status === "delivered") {
+            return res.status(400).json({ message: "Order is already delivered" })
+        }
+
         shopOrder.status = "delivered"
         shopOrder.deliveredAt = Date.now()
         await order.save()
@@ -536,6 +556,60 @@ export const markAsDelivered = async (req, res) => {
     }
 }
 
+export const cancelOrder = async (req, res) => {
+    try {
+        const { orderId, shopId } = req.params
+        const order = await Order.findById(orderId)
+
+        if (!order) {
+            return res.status(400).json({ message: "order not found" })
+        }
+
+        const shopOrder = order.shopOrders.find(o => o.shop == shopId)
+        if (!shopOrder) {
+            return res.status(400).json({ message: "shop order not found" })
+        }
+
+        // Check if order can be cancelled (only if pending or preparing)
+        if (!["pending", "preparing"].includes(shopOrder.status)) {
+            return res.status(400).json({ message: "Order cannot be cancelled at this stage" })
+        }
+
+        // Update status to cancelled
+        shopOrder.status = "cancelled"
+        await order.save()
+
+        // If online payment, initiate refund (simplified - in real app, integrate with payment gateway)
+        if (order.paymentMethod === "online" && order.payment) {
+            // TODO: Implement refund logic with Razorpay
+            // For now, just mark as cancelled
+        }
+
+        // Notify owner via socket if possible
+        await order.populate("user", "socketId")
+        const io = req.app.get('io')
+        if (io) {
+            const userSocketId = order.user.socketId
+            if (userSocketId) {
+                io.to(userSocketId).emit('update-status', {
+                    orderId: order._id,
+                    shopId: shopOrder.shop._id,
+                    status: shopOrder.status,
+                    userId: order.user._id
+                })
+            }
+        }
+
+        return res.status(200).json({
+            message: "Order cancelled successfully",
+            shopOrder
+        })
+
+    } catch (error) {
+        return res.status(500).json({ message: `cancel order error ${error}` })
+    }
+}
+
 export const getTodayDeliveries=async (req,res) => {
     try {
         const deliveryBoyId=req.userId
@@ -548,8 +622,8 @@ export const getTodayDeliveries=async (req,res) => {
            "shopOrders.deliveredAt":{$gte:startsOfDay}
         }).lean()
 
-     let todaysDeliveries=[] 
-     
+     let todaysDeliveries=[]
+
      orders.forEach(order=>{
         order.shopOrders.forEach(shopOrder=>{
             if(shopOrder.assignedDeliveryBoy==deliveryBoyId &&
@@ -571,16 +645,16 @@ todaysDeliveries.forEach(shopOrder=>{
 
 let formattedStats=Object.keys(stats).map(hour=>({
  hour:parseInt(hour),
- count:stats[hour]   
+ count:stats[hour]
 }))
 
 formattedStats.sort((a,b)=>a.hour-b.hour)
 
 return res.status(200).json(formattedStats)
-  
+
 
     } catch (error) {
-        return res.status(500).json({ message: `today deliveries error ${error}` }) 
+        return res.status(500).json({ message: `today deliveries error ${error}` })
     }
 }
 
