@@ -49,7 +49,7 @@ function SignIn() {
     return (
         <div className='min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50'>
             <div className='bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-gray-100 fade-in'>
-                <h1 className='text-4xl font-bold mb-3 gradient-text text-center'>LynQ</h1>
+                <h1 className='text-4xl font-bold mb-3 gradient-text text-center'>LynQt</h1>
                 <p className='text-gray-600 mb-8 text-center'>Welcome back! Sign in to discover amazing fashion</p>
 
               
@@ -92,7 +92,7 @@ function SignIn() {
 <FcGoogle size={24}/>
 <span className='font-medium'>Continue with Google</span>
             </button>
-            <p className='text-center mt-8 text-gray-600'>New to LynQ? <span className='text-indigo-600 font-semibold cursor-pointer hover:text-indigo-700 transition-colors' onClick={()=>navigate("/signup")}>Create Account</span></p>
+            <p className='text-center mt-8 text-gray-600'>New to LynQt? <span className='text-indigo-600 font-semibold cursor-pointer hover:text-indigo-700 transition-colors' onClick={()=>navigate("/signup")}>Create Account</span></p>
             </div>
         </div>
     )

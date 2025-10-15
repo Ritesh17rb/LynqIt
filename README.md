@@ -1,15 +1,15 @@
-# LynQ - Multi-Vendor Ecommerce Platform
+# LynQt - Multi-Vendor Ecommerce Platform
 
 ## Introduction
 
-LynQ is a comprehensive multi-vendor ecommerce platform designed to connect customers, shop owners, and delivery personnel in a seamless online shopping experience. The platform supports real-time interactions, location-based services, secure payments, and role-based access control. Users can browse products, place orders, and track deliveries, while shop owners manage their inventories and orders, and delivery boys handle logistics.
+LynQt is a comprehensive multi-vendor ecommerce platform designed to connect customers, shop owners, and delivery personnel in a seamless online shopping experience. The platform supports real-time interactions, location-based services, secure payments, and role-based access control. Users can browse products, place orders, and track deliveries, while shop owners manage their inventories and orders, and delivery boys handle logistics.
 
 The application is segregated into three primary views:
 - **User View**: For customers to browse, shop, and track orders.
 - **Owner View**: For shop owners to manage their shops, items, and orders.
 - **Delivery Boy View**: For delivery personnel to accept assignments and deliver orders.
 
-LynQ leverages modern web technologies to ensure scalability, real-time updates, and a responsive user interface.
+LynQt leverages modern web technologies to ensure scalability, real-time updates, and a responsive user interface.
 
 ## Features
 
@@ -109,7 +109,7 @@ LynQ leverages modern web technologies to ensure scalability, real-time updates,
 ## Project Structure
 
 ```
-lynq/
+LynQt/
 ├── backend/
 │   ├── config/
 │   │   └── db.js                 # MongoDB connection

@@ -59,7 +59,7 @@ function SignUp() {
     return (
         <div className='min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50'>
             <div className='bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-gray-100 fade-in'>
-                <h1 className='text-4xl font-bold mb-3 gradient-text text-center'>LynQ</h1>
+                <h1 className='text-4xl font-bold mb-3 gradient-text text-center'>LynQt</h1>
                 <p className='text-gray-600 mb-8 text-center'>Join us to explore the latest fashion trends</p>
 
                 {/* fullName */}
