@@ -24,6 +24,7 @@ import Shop from './pages/Shop'
 import { useEffect } from 'react'
 import { io } from 'socket.io-client'
 import { setSocket } from './redux/userSlice'
+import Footer from './components/Footer'
 
 export const serverUrl="http://localhost:8000"
 function App() {
@@ -51,21 +52,24 @@ return ()=>{
   },[userData?._id])
 
   return (
-   <Routes>
-    <Route path='/signup' element={!userData?<SignUp/>:<Navigate to={"/"}/>}/>
-    <Route path='/signin' element={!userData?<SignIn/>:<Navigate to={"/"}/>}/>
-      <Route path='/forgot-password' element={!userData?<ForgotPassword/>:<Navigate to={"/"}/>}/>
-      <Route path='/' element={userData?<Home/>:<Navigate to={"/signin"}/>}/>
-<Route path='/create-edit-shop' element={userData?<CreateEditShop/>:<Navigate to={"/signin"}/>}/>
-<Route path='/add-item' element={userData?<AddItem/>:<Navigate to={"/signin"}/>}/>
-<Route path='/edit-item/:itemId' element={userData?<EditItem/>:<Navigate to={"/signin"}/>}/>
-<Route path='/cart' element={userData?<CartPage/>:<Navigate to={"/signin"}/>}/>
-<Route path='/checkout' element={userData?<CheckOut/>:<Navigate to={"/signin"}/>}/>
-<Route path='/order-placed' element={userData?<OrderPlaced/>:<Navigate to={"/signin"}/>}/>
-<Route path='/my-orders' element={userData?<MyOrders/>:<Navigate to={"/signin"}/>}/>
-<Route path='/track-order/:orderId' element={userData?<TrackOrderPage/>:<Navigate to={"/signin"}/>}/>
-<Route path='/shop/:shopId' element={userData?<Shop/>:<Navigate to={"/signin"}/>}/>
-   </Routes>
+    <div className="min-h-screen flex flex-col">
+      <Routes>
+        <Route path='/signup' element={!userData?<SignUp/>:<Navigate to={"/"}/>}/>
+        <Route path='/signin' element={!userData?<SignIn/>:<Navigate to={"/"}/>}/>
+        <Route path='/forgot-password' element={!userData?<ForgotPassword/>:<Navigate to={"/"}/>}/>
+        <Route path='/' element={userData?<Home/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/create-edit-shop' element={userData?<CreateEditShop/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/add-item' element={userData?<AddItem/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/edit-item/:itemId' element={userData?<EditItem/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/cart' element={userData?<CartPage/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/checkout' element={userData?<CheckOut/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/order-placed' element={userData?<OrderPlaced/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/my-orders' element={userData?<MyOrders/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/track-order/:orderId' element={userData?<TrackOrderPage/>:<Navigate to={"/signin"}/>}/>
+        <Route path='/shop/:shopId' element={userData?<Shop/>:<Navigate to={"/signin"}/>}/>
+      </Routes>
+      <Footer />
+    </div>
   )
 }
 
