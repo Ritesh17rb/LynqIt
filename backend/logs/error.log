@@ -1,0 +1,2 @@
+{"error":"Invalid email or password","level":"error","message":"Signin error","service":"lynq-api","timestamp":"2025-10-15 23:44:29"}
+{"error":{"isOperational":true,"name":"AuthenticationError","status":"fail","statusCode":401},"level":"error","message":"Invalid email or password","service":"lynq-api","stack":"AuthenticationError: Invalid email or password\n    at signIn (file:///C:/Users/Ritesh/Downloads/lynq/backend/controllers/auth.controllers.js:55:19)","status":"fail","timestamp":"2025-10-15 23:44:29"}
