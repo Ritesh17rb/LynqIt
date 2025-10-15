@@ -1,11 +1,9 @@
-# TODO: Fix Owner Data Isolation
+# Profile Implementation TODO
 
-## Tasks
-- [x] Add ownership check in `editItem` controller to ensure item belongs to logged-in owner's shop
-- [x] Add ownership check in `deleteItem` controller to ensure item belongs to logged-in owner's shop
-- [x] Add ownership check in `getItemById` controller to ensure item belongs to logged-in owner's shop
-
-## Notes
-- Ownership checks will prevent owners from accessing/modifying other owners' items
-- Changes only in `backend/controllers/item.controllers.js`
-- Test by signing in as different owners and verifying isolation
+- [x] Create frontend/src/pages/Profile.jsx for viewing/editing user profile
+- [x] Add /profile route in frontend/src/App.jsx
+- [x] Modify frontend/src/components/Nav.jsx to navigate to /profile on profile icon click
+- [x] Add updateUser controller in backend/controllers/user.controllers.js
+- [x] Add deactivateUser controller in backend/controllers/user.controllers.js
+- [x] Add PUT /api/user/update route in backend/routes/user.routes.js
+- [x] Add DELETE /api/user/deactivate route in backend/routes/user.routes.js
