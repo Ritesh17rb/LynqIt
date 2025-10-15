@@ -1,9 +1,8 @@
-# Profile Implementation TODO
+# TODO: Add Tailwind 3 Image Carousel to Homepage and Update Text Styles
 
-- [x] Create frontend/src/pages/Profile.jsx for viewing/editing user profile
-- [x] Add /profile route in frontend/src/App.jsx
-- [x] Modify frontend/src/components/Nav.jsx to navigate to /profile on profile icon click
-- [x] Add updateUser controller in backend/controllers/user.controllers.js
-- [x] Add deactivateUser controller in backend/controllers/user.controllers.js
-- [x] Add PUT /api/user/update route in backend/routes/user.routes.js
-- [x] Add DELETE /api/user/deactivate route in backend/routes/user.routes.js
+## Steps to Complete:
+- [x] Step 1: Update frontend/src/index.css to import Poppins font from Google Fonts.
+- [x] Step 2: Create frontend/src/components/Carousel.jsx with a responsive Tailwind 3 image carousel using existing assets (cloth1.jpg, cloth2.jpg, cloth3.jpg, cloth4.jpg, camera1.jpg, laptop1.jpg, phone1.jpg, shoes1.jpg).
+- [x] Step 3: Update frontend/src/components/UserDashboard.jsx to import and add the Carousel component at the top, right after Nav.
+- [x] Step 4: Update text styles in UserDashboard.jsx to use Poppins font and enhance styling (e.g., gradients, shadows, better colors).
+- [ ] Step 5: Test the changes by running the frontend and verifying responsiveness and styling.
