@@ -12,9 +12,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 function DeliveryBoy() {
   const {userData,socket}=useSelector(state=>state.user)
   const [currentOrder,setCurrentOrder]=useState()
-  const [showOtpBox,setShowOtpBox]=useState(false)
   const [availableAssignments,setAvailableAssignments]=useState(null)
-  const [otp,setOtp]=useState("")
   const [todayDeliveries,setTodayDeliveries]=useState([])
 const [deliveryBoyLocation,setDeliveryBoyLocation]=useState(null)
 const [loading,setLoading]=useState(false)
@@ -92,31 +90,19 @@ const totalEarning=todayDeliveries.reduce((sum,d)=>sum + d.count*ratePerDelivery
     }
   },[socket])
   
-  const sendOtp=async () => {
+  const markAsDelivered=async () => {
     setLoading(true)
     try {
-      const result=await axios.post(`${serverUrl}/api/order/send-delivery-otp`,{
+      const result=await axios.post(`${serverUrl}/api/order/mark-as-delivered`,{
         orderId:currentOrder._id,shopOrderId:currentOrder.shopOrder._id
       },{withCredentials:true})
       setLoading(false)
-       setShowOtpBox(true)
+      setMessage(result.data.message)
+      location.reload()
     console.log(result.data)
     } catch (error) {
       console.log(error)
       setLoading(false)
-    }
-  }
-   const verifyOtp=async () => {
-    setMessage("")
-    try {
-      const result=await axios.post(`${serverUrl}/api/order/verify-delivery-otp`,{
-        orderId:currentOrder._id,shopOrderId:currentOrder.shopOrder._id,otp
-      },{withCredentials:true})
-    console.log(result.data)
-    setMessage(result.data.message)
-    location.reload()
-    } catch (error) {
-      console.log(error)
     }
   }
 
@@ -206,15 +192,10 @@ availableAssignments.map((a,index)=>(
         lat: currentOrder.deliveryAddress.latitude,
         lon: currentOrder.deliveryAddress.longitude
       }}} />
-{!showOtpBox ? <button className='mt-4 w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-green-600 active:scale-95 transition-all duration-200' onClick={sendOtp} disabled={loading}>
+<button className='mt-4 w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-green-600 active:scale-95 transition-all duration-200' onClick={markAsDelivered} disabled={loading}>
 {loading?<ClipLoader size={20} color='white'/> :"Mark As Delivered"}
- </button>:<div className='mt-4 p-4 border rounded-xl bg-gray-50'>
-<p className='text-sm font-semibold mb-2'>Enter Otp send to <span className='text-orange-500'>{currentOrder.user.fullName}</span></p>
-<input type="text" className='w-full border px-3 py-2 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-orange-400' placeholder='Enter OTP' onChange={(e)=>setOtp(e.target.value)} value={otp}/>
-{message && <p className='text-center text-green-400 text-2xl mb-4'>{message}</p>}
-
-<button className="w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 transition-all" onClick={verifyOtp}>Submit OTP</button>
-  </div>}
+ </button>
+{message && <p className='text-center text-green-400 text-2xl mt-4'>{message}</p>}
 
   </div>}
 

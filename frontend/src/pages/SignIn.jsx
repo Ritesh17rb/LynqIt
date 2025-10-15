@@ -11,6 +11,7 @@ import { auth } from '../../firebase';
 import { ClipLoader } from 'react-spinners';
 import { useDispatch } from 'react-redux';
 import { setUserData } from '../redux/userSlice';
+import { clearMyShopData } from '../redux/ownerSlice';
 function SignIn() {
     const [showPassword, setShowPassword] = useState(false)
     const navigate=useNavigate()

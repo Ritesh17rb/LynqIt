@@ -29,12 +29,17 @@ export const createEditShop=async (req,res) => {
 
 export const getMyShop=async (req,res) => {
     try {
+        // Strict validation: ensure only the authenticated user's shop is returned
         const shop=await Shop.findOne({owner:req.userId}).populate("owner").populate({
             path:"items",
             options:{sort:{updatedAt:-1}}
         })
         if(!shop){
-            return null
+            return res.status(200).json(null) // Return null explicitly if no shop found
+        }
+        // Additional security check: verify the shop's owner matches the request user
+        if(shop.owner._id.toString() !== req.userId.toString()){
+            return res.status(403).json({message:"Access denied: You can only access your own shop"})
         }
         return res.status(200).json(shop)
     } catch (error) {

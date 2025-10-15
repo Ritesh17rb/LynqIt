@@ -1,15 +1,15 @@
-# Delivery Boy Logic and Real-Time Updates Fixes
+# TODO: Remove OTP for Mark As Delivered
 
-## Issues Identified
-- Incorrect popup text in DeliveryBoyTracking component (customer marker says "Delivery Boy")
-- Location updates broadcasted globally instead of targeted to specific users
-- Syntax error in geolocation watchPosition in DeliveryBoy.jsx
-- Redundant location update mechanisms (HTTP + socket)
-- Missing error handling for geolocation
+## Backend Changes
+- [x] Create `markAsDelivered` function in `backend/controllers/order.controllers.js`
+- [x] Add `/mark-as-delivered` route in `backend/routes/order.routes.js`
 
-## Steps
-- [ ] Fix popup text in DeliveryBoyTracking.jsx
-- [ ] Modify socket.js to emit location updates only to relevant users
-- [ ] Fix geolocation syntax and add error handling in DeliveryBoy.jsx
-- [ ] Remove redundant HTTP location updates for delivery boys
-- [ ] Test real-time location updates in TrackOrderPage
+## Frontend Changes
+- [x] Remove OTP-related states (`showOtpBox`, `otp`) in `frontend/src/components/DeliveryBoy.jsx`
+- [x] Remove `sendOtp` and `verifyOtp` functions
+- [x] Remove OTP input UI
+- [x] Update "Mark As Delivered" button to call new `markAsDelivered` function
+
+## Testing
+- [ ] Test the changes by running the app and verifying direct delivery marking
+ 
