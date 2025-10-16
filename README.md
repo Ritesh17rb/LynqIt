@@ -90,6 +90,10 @@ LynQt leverages modern web technologies to ensure scalability, real-time updates
 
 ### Workflow Overview
 
+![deepseek_mermaid_20251016_c797ba](https://github.com/user-attachments/assets/b5729ba4-8ca0-42a1-85d4-93ec8874ca8a)
+
+![deepseek_mermaid_20251016_87d9d1](https://github.com/user-attachments/assets/35c43fd6-3a95-4d20-b5c6-08401e489a84)
+
 #### User Registration and Authentication
 1. Users register with role selection (user/owner/deliveryBoy)
 2. JWT-based authentication with secure cookies
