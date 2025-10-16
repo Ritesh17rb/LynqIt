@@ -84,6 +84,7 @@ LynQt leverages modern web technologies to ensure scalability, real-time updates
 - **Items**: Products listed by Owners in their Shops, categorized and rated by Users
 - **Orders**: Multi-shop orders placed by Users, split into ShopOrders for each shop
 - **DeliveryAssignments**: Broadcasted to nearby Delivery Boys for order fulfillment
+![1000262585](https://github.com/user-attachments/assets/8cdeff90-7983-4b0b-a80f-d41e1e3ce435)
 
 ### Workflow Overview
 
@@ -128,6 +129,10 @@ LynQt leverages modern web technologies to ensure scalability, real-time updates
 - Delivery Boy assignment based on proximity (5km radius)
 - Real-time location updates for tracking
 - Map visualization using Leaflet
+
+### Order Fulfillment Entity Flow
+![1000262587](https://github.com/user-attachments/assets/54f7eaf8-c44c-42d0-b96e-d79444bfe4d7)
+
 
 ## Features
 
