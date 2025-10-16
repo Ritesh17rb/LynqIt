@@ -12,6 +12,8 @@ The application is segregated into three primary views:
 LynQt leverages modern web technologies to ensure scalability, real-time updates, and a responsive user interface.
 
 ## Overall App Structure and Workflow
+![deepseek_mermaid_20251016_87d9d1](https://github.com/user-attachments/assets/d6ba17d5-dceb-400c-8fc0-a62f7780ab6a)
+
 
 ### Core Entities and Relationships
 - **Users**: Three roles - User (customer), Owner (shop owner), Delivery Boy (delivery personnel)
