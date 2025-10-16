@@ -11,6 +11,59 @@ The application is segregated into three primary views:
 
 LynQt leverages modern web technologies to ensure scalability, real-time updates, and a responsive user interface.
 
+## Overall App Structure and Workflow
+
+### Core Entities and Relationships
+- **Users**: Three roles - User (customer), Owner (shop owner), Delivery Boy (delivery personnel)
+- **Shops**: Owned by Owners, contain Items, located in specific cities
+- **Items**: Products listed by Owners in their Shops, categorized and rated by Users
+- **Orders**: Multi-shop orders placed by Users, split into ShopOrders for each shop
+- **DeliveryAssignments**: Broadcasted to nearby Delivery Boys for order fulfillment
+
+### Workflow Overview
+
+#### User Registration and Authentication
+1. Users register with role selection (user/owner/deliveryBoy)
+2. JWT-based authentication with secure cookies
+3. Firebase integration for additional auth methods
+4. OTP verification for password resets
+
+#### Shop and Item Management (Owner)
+1. Owners create/edit shops with location details
+2. Add/edit/delete items with categories, prices, images, etc.
+3. Manage inventory and view orders
+
+#### Shopping and Ordering (User)
+1. Users browse shops/items by city/location
+2. Add items to cart, manage quantities
+3. Place orders with payment (COD/Online via Razorpay)
+4. Track order status in real-time
+
+#### Order Fulfillment
+1. Owners receive new orders via real-time notifications
+2. Update order status: pending → preparing → out of delivery
+3. When "out of delivery", system broadcasts to nearby Delivery Boys
+4. Delivery Boys accept assignments, track routes, deliver with OTP verification
+
+#### Delivery Process
+1. Delivery Boys receive assignment broadcasts
+2. Accept assignments (first-come-first-served)
+3. Update location in real-time for customer tracking
+4. Generate and verify OTP for secure delivery handoff
+5. Mark orders as delivered, receive statistics
+
+### Real-Time Features
+- Order status updates broadcast to Users and Owners
+- Delivery location sharing for live tracking
+- Assignment broadcasts to Delivery Boys
+- Presence tracking (online/offline status)
+
+### Location-Based Services
+- Geospatial queries for finding nearby shops/items
+- Delivery Boy assignment based on proximity (5km radius)
+- Real-time location updates for tracking
+- Map visualization using Leaflet
+
 ## Features
 
 ### Core Features
@@ -256,35 +309,147 @@ LynQt/
 3. Accept assignments and track routes.
 4. Update order status and generate/verify OTP for delivery.
 
-## API Endpoints
+## Detailed API Descriptions
 
-### Authentication
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/signin` - User login
-- `POST /api/auth/verify-otp` - OTP verification
-- `POST /api/auth/forgot-password` - Password reset
+### Authentication APIs
+- `POST /api/auth/signup` - Registers new users with role selection (user/owner/deliveryBoy). Validates input, hashes password, generates JWT token.
+- `POST /api/auth/signin` - Authenticates users, compares hashed passwords, issues JWT token.
+- `GET /api/auth/signout` - Clears authentication cookies.
+- `POST /api/auth/send-otp` - Sends OTP to email for password reset.
+- `POST /api/auth/verify-otp` - Verifies OTP and allows password reset.
+- `POST /api/auth/reset-password` - Resets password after OTP verification.
+- `POST /api/auth/google-auth` - Handles Google OAuth authentication.
 
-### User
-- `PUT /api/user/update-location` - Update user location
+### User APIs
+- `GET /api/user/current` - Retrieves current authenticated user details.
+- `POST /api/user/update-location` - Updates user's location coordinates for geospatial queries.
+- `PUT /api/user/update` - Updates user profile information.
+- `DELETE /api/user/deactivate` - Deactivates user account.
 
-### Shop
-- `POST /api/shop/create` - Create shop
-- `GET /api/shop/my-shop` - Get owner's shop
-- `GET /api/shop/by-city/:city` - Get shops by city
+### Shop APIs
+- `POST /api/shop/create-edit` - Creates or updates shop with image upload (owner only).
+- `GET /api/shop/my-shop` - Retrieves shop owned by current user (owner only).
+- `GET /api/shop/by-city/:city` - Fetches all shops in specified city with geospatial filtering.
 
-### Item
-- `POST /api/item/add` - Add item (owner only)
-- `PUT /api/item/edit/:id` - Edit item (owner only)
-- `DELETE /api/item/delete/:id` - Delete item (owner only)
-- `GET /api/item/by-city/:city` - Get items by city
-- `GET /api/item/:id` - Get item details
+### Item APIs
+- `POST /api/item/add-item` - Adds new item to shop with image upload (owner only).
+- `POST /api/item/edit-item/:itemId` - Updates existing item details (owner only).
+- `GET /api/item/delete/:itemId` - Deletes item from shop (owner only).
+- `GET /api/item/by-city/:city` - Retrieves items available in specified city.
+- `GET /api/item/:id` - Fetches detailed item information.
+- `GET /api/item/get-by-shop/:shopId` - Gets all items for a specific shop.
+- `GET /api/item/search-items` - Searches items by query parameters.
+- `POST /api/item/rating` - Allows users to rate items.
 
-### Order
-- `POST /api/order/create` - Create order
-- `GET /api/order/my-orders` - Get user's orders
-- `PUT /api/order/update-status` - Update order status
-- `POST /api/order/assign-delivery` - Assign delivery
-- `POST /api/order/verify-delivery-otp` - Verify delivery OTP
+### Order APIs
+- `POST /api/order/place-order` - Creates multi-shop order, groups items by shop, handles payment creation.
+- `POST /api/order/verify-payment` - Verifies Razorpay payment and updates order status.
+- `GET /api/order/my-orders` - Retrieves orders based on user role (user/owner/deliveryBoy).
+- `GET /api/order/get-assignments` - Fetches delivery assignments for delivery boys.
+- `GET /api/order/get-current-order` - Gets current active order for delivery boy.
+- `POST /api/order/send-delivery-otp` - Generates and sends OTP for delivery verification.
+- `POST /api/order/mark-as-delivered` - Marks order as delivered after OTP verification.
+- `POST /api/order/update-status/:orderId/:shopId` - Updates order status (owner only), triggers delivery assignment when "out of delivery".
+- `POST /api/order/cancel-order/:orderId/:shopId` - Cancels order if in cancellable state.
+- `GET /api/order/accept-order/:assignmentId` - Delivery boy accepts assignment.
+- `GET /api/order/get-order-by-id/:orderId` - Retrieves detailed order information.
+- `GET /api/order/get-today-deliveries` - Gets delivery statistics for current day (delivery boy only).
+
+## How MAP (Leaflet) is Used for Location Services and Tracking
+
+### Location-Based Services Implementation
+- **Geolocation API Integration**: Frontend uses browser geolocation API to get user coordinates, stored in Redux state (mapSlice).
+- **Leaflet Map Rendering**: React-Leaflet components render interactive maps with custom markers (scooter for delivery boys, home for customers).
+- **Geospatial Queries**: MongoDB 2dsphere indexes enable proximity searches for shops/items within city boundaries.
+- **Real-Time Location Updates**: Delivery boys emit location updates via Socket.io, stored as GeoJSON Points in User model.
+
+### Map Features in Components
+- **DeliveryBoyTracking.jsx**: Displays live delivery tracking with:
+  - Delivery boy marker (scooter icon) showing real-time position
+  - Customer location marker (home icon) at delivery address
+  - Polyline connecting delivery boy to customer for route visualization
+  - Auto-centering and zoom based on positions
+- **TrackOrderPage.jsx**: Integrates DeliveryBoyTracking for order tracking, receives live location updates via Socket.io.
+
+### Location Workflow
+1. Users update location on app load via `useUpdateLocation` hook
+2. Location stored in Redux and sent to backend via `/api/user/update-location`
+3. Delivery boys continuously update location via Socket.io `updateLocation` event
+4. Frontend receives `updateDeliveryLocation` events to update map markers in real-time
+
+## How Socket Real-Time Communication Works
+
+### Socket.io Architecture
+- **Server Setup**: Express server creates HTTP server, initializes Socket.io with CORS for frontend (localhost:5173).
+- **Client Setup**: React app connects to Socket.io server with credentials, emits `identity` event with userId on connect.
+- **Event Handling**: Backend `socket.js` handles connection, identity, updateLocation, and disconnect events.
+
+### Real-Time Features Implementation
+
+#### Order Status Updates
+- **Owner Updates Status**: When owner calls `updateOrderStatus`, backend emits `update-status` to customer's socketId.
+- **Broadcast to Owners**: New orders emit `newOrder` to shop owner's socketId.
+- **Frontend Redux**: `updateRealtimeOrderStatus` reducer updates order status in state for immediate UI updates.
+
+#### Delivery Tracking
+- **Location Sharing**: Delivery boys emit `updateLocation` with coordinates, backend finds assigned orders and emits `updateDeliveryLocation` to customers.
+- **Assignment Broadcasts**: When order status becomes "out of delivery", system broadcasts `newAssignment` to nearby delivery boys' socketIds.
+
+#### Presence Tracking
+- **Online Status**: Socket connection updates User model `socketId` and `isOnline` fields.
+- **Disconnect Handling**: On disconnect, clears socketId and sets isOnline to false.
+
+### Socket Events Flow
+1. **Connection**: Client connects, emits `identity` with userId
+2. **Location Updates**: Delivery boys emit `updateLocation` periodically
+3. **Order Events**: Status changes trigger targeted emits to relevant users
+4. **Assignment Events**: New assignments broadcast to available delivery boys
+5. **Disconnect**: Cleanup on socket disconnect
+
+## App Architecture
+
+### Backend Architecture
+- **Layered Architecture**: Routes → Controllers → Models/Services
+- **Modular Structure**: Separate folders for controllers, models, routes, middlewares, utils
+- **Authentication Middleware**: `isAuth.js` validates JWT tokens, attaches userId to req
+- **Error Handling**: Global error handler with custom AppError classes, logging with Winston
+- **Validation**: Joi schemas in `utils/validation/` for input sanitization
+- **File Upload**: Multer middleware with Cloudinary integration for image handling
+
+### Frontend Architecture
+- **Component-Based**: React functional components with hooks
+- **State Management**: Redux Toolkit with slices for user, owner, map state
+- **Routing**: React Router with protected routes based on authentication
+- **Custom Hooks**: Data fetching hooks (useGetCurrentUser, useGetMyOrders, etc.) using Axios
+- **Real-Time Integration**: Socket.io client for live updates, integrated with Redux
+- **Styling**: Tailwind CSS with dark mode support via Redux theme state
+
+### Data Flow
+- **API Calls**: Axios interceptors handle auth headers, responses update Redux state
+- **Real-Time Updates**: Socket events dispatch Redux actions for immediate UI updates
+- **Location Services**: Geolocation API → Redux → API calls → Database updates → Socket broadcasts
+
+## Validation Mechanisms
+
+### Backend Validation
+- **Joi Schemas**: Comprehensive validation in `utils/validation/` for all API inputs
+  - `auth.validation.js`: Signup/signin/reset password schemas
+  - `item.validation.js`: Item creation/update validation
+  - `order.validation.js`: Order placement validation
+  - `shop.validation.js`: Shop creation validation
+- **Middleware Integration**: `validate.js` utility applies schemas to route handlers
+- **Error Responses**: Validation errors return 400 status with detailed messages
+
+### Frontend Validation
+- **Form Libraries**: Likely using react-hook-form with validation schemas
+- **Real-Time Feedback**: Input validation on blur/change events
+- **API Error Handling**: Toast notifications for backend validation errors
+
+### Security Validation
+- **JWT Verification**: All protected routes validate tokens
+- **Role-Based Access**: Controllers check user roles for authorization
+- **Ownership Checks**: Owners can only modify their own shops/items
+- **OTP Validation**: Time-limited OTPs for password reset and delivery verification
 
 ## Contributing
 
@@ -300,4 +465,4 @@ ISC License
 
 ## Contact
 
-For questions or support, contact the development team at [your-email@example.com].
+For questions or support, contact the development team at [ritesh17lifeamazing@gmail.com].
