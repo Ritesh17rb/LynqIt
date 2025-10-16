@@ -1,61 +1,78 @@
-import React from 'react'
+import React from 'react';
 import { useState } from 'react';
-import { FaRegEye } from "react-icons/fa";
-import { FaRegEyeSlash } from "react-icons/fa";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from 'react-router-dom';
-import axios from "axios"
+import axios from "axios";
 import { serverUrl } from '../App';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { ClipLoader } from "react-spinners"
+import { ClipLoader } from "react-spinners";
 import { useDispatch } from 'react-redux';
 import { setUserData } from '../redux/userSlice';
 import { clearMyShopData } from '../redux/ownerSlice';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { signupSchema } from '../validation/auth.schema';
+import { useFormError } from '../hooks/useFormError';
 function SignUp() {
-    const [showPassword, setShowPassword] = useState(false)
-    const [role, setRole] = useState("user")
-    const navigate=useNavigate()
-    const [fullName,setFullName]=useState("")
-    const [email,setEmail]=useState("")
-    const [password,setPassword]=useState("")
-    const [mobile,setMobile]=useState("")
-    const [err,setErr]=useState("")
-    const [loading,setLoading]=useState(false)
-    const dispatch=useDispatch()
-     const handleSignUp=async () => {
-        setLoading(true)
-        try {
-            const result=await axios.post(`${serverUrl}/api/auth/signup`,{
-                fullName,email,password,mobile,role
-            },{withCredentials:true})
-            dispatch(setUserData(result.data))
-            setErr("")
-            setLoading(false)
-        } catch (error) {
-            setErr(error?.response?.data?.message)
-             setLoading(false)
-        }
-     }
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { handleError } = useFormError();
 
-     const handleGoogleAuth=async () => {
-        if(!mobile){
-          return setErr("Mobile number is required for Google sign up")
+    const { register, handleSubmit, formState: { errors }, setError, setValue, watch } = useForm({
+        resolver: yupResolver(signupSchema),
+        defaultValues: {
+            role: 'user'
         }
-        const provider=new GoogleAuthProvider()
-        const result=await signInWithPopup(auth,provider)
-  try {
-    const {data}=await axios.post(`${serverUrl}/api/auth/google-auth`,{
-        fullName:result.user.displayName,
-        email:result.user.email,
-        role,
-        mobile
-    },{withCredentials:true})
-   dispatch(setUserData(data))
-  } catch (error) {
-    console.log(error)
-  }
-     }
+    });
+
+    const role = watch('role');
+
+    const onSubmit = async (data) => {
+        setLoading(true);
+        try {
+            const result = await axios.post(`${serverUrl}/api/auth/signup`, data, {
+                withCredentials: true
+            });
+            dispatch(setUserData(result.data));
+            setLoading(false);
+            navigate('/');
+        } catch (error) {
+            handleError(error);
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleAuth = async () => {
+        const mobile = watch('mobile');
+        if (!mobile) {
+            setError('mobile', {
+                type: 'manual',
+                message: 'Mobile number is required for Google sign up'
+            });
+            return;
+        }
+
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            
+            const { data } = await axios.post(`${serverUrl}/api/auth/google-auth`, {
+                fullName: result.user.displayName,
+                email: result.user.email,
+                role,
+                mobile
+            }, { withCredentials: true });
+            
+            dispatch(setUserData(data));
+            navigate('/');
+        } catch (error) {
+            handleError(error);
+        }
+    };
     return (
         <div className='min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50'>
             <div className='bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-gray-100 fade-in'>
@@ -64,58 +81,94 @@ function SignUp() {
 
                 {/* fullName */}
 
-                <div className='mb-6'>
-                    <label htmlFor="fullName" className='block text-gray-700 font-semibold mb-2'>Full Name</label>
-                    <input type="text" className='input-modern w-full' placeholder='Enter your full name' onChange={(e)=>setFullName(e.target.value)} value={fullName} required/>
-                </div>
-                {/* email */}
-
-                <div className='mb-6'>
-                    <label htmlFor="email" className='block text-gray-700 font-semibold mb-2'>Email Address</label>
-                    <input type="email" className='input-modern w-full' placeholder='Enter your email' onChange={(e)=>setEmail(e.target.value)} value={email} required/>
-                </div>
-                {/* mobile*/}
-
-                <div className='mb-6'>
-                    <label htmlFor="mobile" className='block text-gray-700 font-semibold mb-2'>Mobile Number</label>
-                    <input type="tel" className='input-modern w-full' placeholder='Enter your mobile number' onChange={(e)=>setMobile(e.target.value)} value={mobile} required/>
-                </div>
-                {/* password*/}
-
-                <div className='mb-6'>
-                    <label htmlFor="password" className='block text-gray-700 font-semibold mb-2'>Password</label>
-                    <div className='relative'>
-                        <input type={`${showPassword ? "text" : "password"}`} className='input-modern w-full pr-12' placeholder='Create a password' onChange={(e)=>setPassword(e.target.value)} value={password} required/>
-
-                        <button className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors' onClick={() => setShowPassword(prev => !prev)}>{!showPassword ? <FaRegEye /> : <FaRegEyeSlash />}</button>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                    {/* Full Name */}
+                    <div className='mb-6'>
+                        <label htmlFor="name" className='block text-gray-700 font-semibold mb-2'>Full Name</label>
+                        <input 
+                            type="text" 
+                            className={`input-modern w-full ${errors.name ? 'border-red-500' : ''}`}
+                            placeholder='Enter your full name'
+                            {...register('name')}
+                        />
+                        {errors.name && <p className='text-red-500 text-sm mt-1'>{errors.name.message}</p>}
                     </div>
-                </div>
-                {/* role*/}
 
-                <div className='mb-8'>
-                    <label htmlFor="role" className='block text-gray-700 font-semibold mb-3'>I want to join as</label>
-                    <div className='grid grid-cols-3 gap-3'>
-                        {["user", "owner", "deliveryBoy"].map((r) => (
+                    {/* Email */}
+                    <div className='mb-6'>
+                        <label htmlFor="email" className='block text-gray-700 font-semibold mb-2'>Email Address</label>
+                        <input 
+                            type="email" 
+                            className={`input-modern w-full ${errors.email ? 'border-red-500' : ''}`}
+                            placeholder='Enter your email'
+                            {...register('email')}
+                        />
+                        {errors.email && <p className='text-red-500 text-sm mt-1'>{errors.email.message}</p>}
+                    </div>
+
+                    {/* Mobile */}
+                    <div className='mb-6'>
+                        <label htmlFor="mobile" className='block text-gray-700 font-semibold mb-2'>Mobile Number</label>
+                        <input 
+                            type="tel" 
+                            className={`input-modern w-full ${errors.mobile ? 'border-red-500' : ''}`}
+                            placeholder='Enter your mobile number'
+                            {...register('mobile')}
+                        />
+                        {errors.mobile && <p className='text-red-500 text-sm mt-1'>{errors.mobile.message}</p>}
+                    </div>
+
+                    {/* Password */}
+                    <div className='mb-6'>
+                        <label htmlFor="password" className='block text-gray-700 font-semibold mb-2'>Password</label>
+                        <div className='relative'>
+                            <input 
+                                type={showPassword ? "text" : "password"}
+                                className={`input-modern w-full pr-12 ${errors.password ? 'border-red-500' : ''}`}
+                                placeholder='Create a password'
+                                {...register('password')}
+                            />
                             <button
-                                className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                                    role === r
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                                onClick={() => setRole(r)}
-                                key={r}
+                                type="button"
+                                className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors'
+                                onClick={() => setShowPassword(prev => !prev)}
                             >
-                                {r === 'deliveryBoy' ? 'Delivery' : r.charAt(0).toUpperCase() + r.slice(1)}
+                                {!showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
                             </button>
-                        ))}
+                        </div>
+                        {errors.password && <p className='text-red-500 text-sm mt-1'>{errors.password.message}</p>}
                     </div>
-                </div>
 
-            <button className='btn-primary w-full mb-4' onClick={handleSignUp} disabled={loading}>
-                {loading?<ClipLoader size={20} color='white'/>:"Create Account"}
-            
-            </button>
-            {err && <p className='text-red-500 text-center mb-4 bg-red-50 p-3 rounded-lg'>*{err}</p>}
+                    {/* Role */}
+                    <div className='mb-8'>
+                        <label className='block text-gray-700 font-semibold mb-3'>I want to join as</label>
+                        <div className='grid grid-cols-3 gap-3'>
+                            {["user", "owner", "delivery"].map((r) => (
+                                <button
+                                    type="button"
+                                    key={r}
+                                    className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                                        role === r
+                                            ? 'bg-indigo-600 text-white shadow-lg'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                                    onClick={() => setValue('role', r)}
+                                >
+                                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        {errors.role && <p className='text-red-500 text-sm mt-1'>{errors.role.message}</p>}
+                    </div>
+
+                    <button 
+                        type="submit"
+                        className='btn-primary w-full mb-4'
+                        disabled={loading}
+                    >
+                        {loading ? <ClipLoader size={20} color='white'/> : "Create Account"}
+                    </button>
+                </form>
             
 
             <div className='relative mb-6'>
