@@ -1,5 +1,25 @@
 # LynQt - Multi-Vendor Ecommerce Platform
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Technologies Used](#technologies-used)
+- [Overall App Structure and Workflow](#overall-app-structure-and-workflow)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Database Models](#database-models)
+- [Project Structure](#project-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Usage](#usage)
+- [Detailed API Descriptions](#detailed-api-descriptions)
+- [How MAP (Leaflet) is Used for Location Services and Tracking](#how-map-leaflet-is-used-for-location-services-and-tracking)
+- [How Socket Real-Time Communication Works](#how-socket-real-time-communication-works)
+- [App Architecture](#app-architecture)
+- [Validation Mechanisms](#validation-mechanisms)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
 ## Introduction
 
 LynQt is a comprehensive multi-vendor ecommerce platform designed to connect customers, shop owners, and delivery personnel in a seamless online shopping experience. The platform supports real-time interactions, location-based services, secure payments, and role-based access control. Users can browse products, place orders, and track deliveries, while shop owners manage their inventories and orders, and delivery boys handle logistics.
@@ -10,6 +30,49 @@ The application is segregated into three primary views:
 - **Delivery Boy View**: For delivery personnel to accept assignments and deliver orders.
 
 LynQt leverages modern web technologies to ensure scalability, real-time updates, and a responsive user interface.
+
+## Technologies Used
+
+### Backend Technologies
+- **Node.js**: JavaScript runtime environment for server-side development.
+- **Express.js**: Web application framework for building RESTful APIs and handling HTTP requests.
+- **MongoDB**: NoSQL database for storing application data with flexible schema.
+- **Mongoose**: ODM (Object Data Modeling) library for MongoDB, providing schema validation and data modeling.
+- **JWT (JSON Web Tokens)**: For secure authentication and authorization by generating and verifying tokens.
+- **bcryptjs**: Library for hashing passwords to ensure secure storage.
+- **Socket.io**: Enables real-time, bidirectional communication between client and server for features like live updates and notifications.
+- **Razorpay**: Payment gateway integration for handling online payments securely.
+- **Multer**: Middleware for handling multipart/form-data, used for file uploads.
+- **Cloudinary**: Cloud-based service for image and video management, including uploads, transformations, and storage.
+- **Nodemailer**: Module for sending emails, used for OTP verification and notifications.
+- **Cors**: Middleware to enable Cross-Origin Resource Sharing for API requests from different domains.
+- **Cookie-Parser**: Middleware to parse cookies attached to client requests.
+- **Dotenv**: Loads environment variables from a .env file for configuration management.
+- **Winston**: Logging library for handling application logs (error and combined logs).
+- **Joi**: Schema validation library for validating API inputs and ensuring data integrity.
+
+### Frontend Technologies
+- **React 19**: JavaScript library for building user interfaces with components and hooks.
+- **Vite**: Build tool and development server for fast frontend development and bundling.
+- **Redux Toolkit**: State management library for predictable state updates and global state handling.
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development and responsive design.
+- **React Router DOM**: Library for declarative routing in React applications.
+- **Leaflet**: Open-source JavaScript library for interactive maps.
+- **React-Leaflet**: React components for Leaflet maps integration.
+- **Firebase Auth**: Authentication service for handling user sign-in methods like Google OAuth.
+- **Axios**: HTTP client for making API requests to the backend.
+- **React Icons**: Library providing popular icons as React components.
+- **Recharts**: Composable charting library for data visualization (used for potential analytics).
+- **React Spinners**: Collection of loading spinners for better user experience during async operations.
+- **Socket.io Client**: Client-side library for real-time communication with the server.
+- **React Hook Form**: Forms library for efficient form handling and validation (implied in validation schemas).
+- **Yup**: Schema validation library for form validation on the frontend (used in auth.schema.js and forms.schema.js).
+
+### Other Technologies
+- **Docker**: Containerization platform for packaging applications and their dependencies.
+- **Nginx**: Web server used as a reverse proxy and for serving static files in production.
+- **MongoDB Atlas**: Cloud-hosted MongoDB service for database management.
+- **Git**: Version control system for tracking changes and collaboration.
 
 ## Overall App Structure and Workflow
 
@@ -357,25 +420,73 @@ LynQt/
 
 ## How MAP (Leaflet) is Used for Location Services and Tracking
 
-### Location-Based Services Implementation
-- **Geolocation API Integration**: Frontend uses browser geolocation API to get user coordinates, stored in Redux state (mapSlice).
-- **Leaflet Map Rendering**: React-Leaflet components render interactive maps with custom markers (scooter for delivery boys, home for customers).
-- **Geospatial Queries**: MongoDB 2dsphere indexes enable proximity searches for shops/items within city boundaries.
-- **Real-Time Location Updates**: Delivery boys emit location updates via Socket.io, stored as GeoJSON Points in User model.
+### Location Acquisition and Handling
+- **Geolocation API Usage**: The app uses the browser's `navigator.geolocation` API to obtain user coordinates. Two primary methods are employed:
+  - `getCurrentPosition()`: Used in `useGetCity.jsx` hook for one-time location retrieval to determine city, state, and address via reverse geocoding (Geoapify API). This data is stored in Redux (userSlice) and used for filtering shops/items by location.
+  - `watchPosition()`: Implemented in `useUpdateLocation.jsx` hook for continuous location tracking. It updates user location every 30 seconds (maximumAge: 30000ms) with high accuracy enabled. Delivery boys are excluded from this hook as they use Socket.io for real-time updates instead.
+- **Location Storage**: Coordinates are stored as GeoJSON Point type in MongoDB User model with 2dsphere indexing for efficient geospatial queries (e.g., finding nearby delivery boys within 5km radius).
+- **Reverse Geocoding**: Location coordinates are converted to human-readable addresses using Geoapify API, which requires an API key stored in environment variables.
+
+### Leaflet Map Rendering and Features
+- **React-Leaflet Integration**: Maps are rendered using React-Leaflet components with OpenStreetMap tiles.
+- **Custom Markers**: Delivery boys use a scooter icon, customers use a home icon, created via Leaflet Icon class with specified size and anchor points.
+- **Interactive Elements**: Maps include popups for markers, polylines for route visualization, and auto-centering based on delivery boy position.
+- **Real-Time Updates**: Map markers update dynamically as delivery boy location changes, received via Socket.io events.
 
 ### Map Features in Components
-- **DeliveryBoyTracking.jsx**: Displays live delivery tracking with:
-  - Delivery boy marker (scooter icon) showing real-time position
-  - Customer location marker (home icon) at delivery address
-  - Polyline connecting delivery boy to customer for route visualization
-  - Auto-centering and zoom based on positions
-- **TrackOrderPage.jsx**: Integrates DeliveryBoyTracking for order tracking, receives live location updates via Socket.io.
+- **DeliveryBoyTracking.jsx**: Core tracking component displaying:
+  - Delivery boy marker with real-time position updates
+  - Customer location marker at delivery address
+  - Blue polyline connecting delivery boy to customer for visual route guidance
+  - Responsive map container with zoom level 16 and full width/height
+- **TrackOrderPage.jsx**: Integrates DeliveryBoyTracking for order-specific tracking, handling multiple shop orders per delivery.
 
 ### Location Workflow
-1. Users update location on app load via `useUpdateLocation` hook
-2. Location stored in Redux and sent to backend via `/api/user/update-location`
-3. Delivery boys continuously update location via Socket.io `updateLocation` event
-4. Frontend receives `updateDeliveryLocation` events to update map markers in real-time
+1. **Initial Location Fetch**: On app load, `useGetCity` hook gets current position and reverse geocodes to city/state/address.
+2. **Continuous Updates for Users/Owners**: `useUpdateLocation` hook sends location to backend via `/api/user/update-location` API.
+3. **Delivery Boy Tracking**: Delivery boys emit `updateLocation` via Socket.io with coordinates, updating User model and broadcasting to assigned customers.
+4. **Real-Time Broadcasting**: Backend finds active assignments and emits `updateDeliveryLocation` to customer socketIds for live map updates.
+5. **Map Rendering**: Frontend receives events, updates Redux state, and re-renders DeliveryBoyTracking component.
+
+### Privacy Concerns and Data Handling
+- **Location Data Sensitivity**: Real-time location sharing enables live tracking but raises privacy concerns regarding user location data collection and usage.
+- **Data Storage**: Location coordinates are stored in MongoDB as GeoJSON Points, potentially indefinitely unless user account is deleted.
+- **Real-Time Sharing**: Delivery boy locations are broadcast to customers during active deliveries, visible on maps without explicit consent beyond order placement.
+- **Geolocation Permissions**: App relies on browser geolocation permissions; users can deny access, but this may limit functionality (e.g., location-based shop filtering).
+- **Data Retention**: No explicit data retention policies mentioned; locations persist in database until user updates or account deletion.
+- **Potential Risks**: Location data could be misused for tracking users beyond delivery purposes; consider implementing data minimization and user consent mechanisms.
+- **Security Measures**: Location updates require authenticated JWT tokens; however, real-time broadcasts occur over WebSocket without additional encryption beyond Socket.io's built-in security.
+- **Recommendations**: Implement user controls for location sharing preferences, data anonymization for non-essential uses, and compliance with privacy regulations like GDPR/CCPA.
+
+## Authentication and Security Mechanisms
+
+### JWT (JSON Web Tokens) Implementation
+- **Token Generation**: JWT tokens are created using `jsonwebtoken` library with HS256 algorithm, signed with a secret key stored in environment variables (`JWT_SECRET`). Tokens expire in 7 days and include userId payload.
+- **Token Verification**: All protected routes use `isAuth.js` middleware to verify JWT tokens from cookies. Invalid or expired tokens return 401 errors.
+- **Secure Storage**: Tokens are stored in HTTP-only cookies to prevent XSS attacks, with secure flags in production.
+- **Encryption**: Passwords are hashed using `bcryptjs` with salt rounds for secure storage. No plain-text passwords are stored.
+
+### Authentication Flow
+1. **Signup/Signin**: User credentials validated, password hashed, JWT generated and sent in cookie.
+2. **Protected Routes**: Middleware verifies token, attaches userId to request object.
+3. **Role-Based Access**: Controllers check user roles (user/owner/deliveryBoy) for authorization.
+4. **Firebase Integration**: Additional OAuth authentication via Firebase for Google sign-in.
+
+### Security Measures
+- **Input Validation**: Joi schemas validate all API inputs to prevent injection attacks.
+- **CORS Configuration**: Restricted to frontend domain (localhost:5173) to prevent unauthorized cross-origin requests.
+- **Rate Limiting**: Not explicitly implemented; consider adding for production.
+- **HTTPS**: Recommended for production to encrypt data in transit.
+- **Environment Variables**: Sensitive data (secrets, API keys) stored securely, not hardcoded.
+- **Error Handling**: Generic error messages prevent information leakage about system internals.
+
+### Data Encryption and Privacy
+- **Password Encryption**: bcryptjs ensures one-way hashing; passwords cannot be decrypted.
+- **JWT Encryption**: Tokens are signed but payload is base64 encoded (not encrypted); sensitive data not stored in tokens.
+- **Database Encryption**: MongoDB data at rest encryption recommended for production.
+- **API Key Security**: External APIs (Geoapify, Cloudinary, Razorpay) use secure key storage.
+- **User Data Protection**: Role-based data isolation prevents unauthorized access to other users' data.
+- **Compliance Considerations**: Implement GDPR/CCPA compliance for user data handling, consent management, and data deletion rights.
 
 ## How Socket Real-Time Communication Works
 
