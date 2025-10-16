@@ -1,11 +1,16 @@
 # LynQt - Multi-Vendor Ecommerce Platform
 ![1000262589](https://github.com/user-attachments/assets/dca8918a-7711-45a8-84ff-be79b067f06a)
 
+
+
 #  Team 
 ## Nishant
 ## Adil
 ## Prathmesh
 ## Ritesh
+
+
+
 
 ## Table of Contents
 
