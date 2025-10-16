@@ -22,7 +22,9 @@ const itemSchema = new mongoose.Schema({
             "Jewelry",
             "Bags",
             "Beauty",
-            "Others"
+            "Electronics",
+            "Food",
+            "Others",
         ],
         required: true
     },
