@@ -20,37 +20,31 @@ import errorHandler from "./middlewares/errorHandler.js";
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Allowed Origins (Use '*' in development only)
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://lynq-it.vercel.app"]
-    : ["http://localhost:5173"];
-
-// ✅ Setup Socket.IO with CORS
+// ✅ Allow ALL origins for Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: "*",
     credentials: true,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   },
 });
 
-// ✅ Attach io instance to app (so you can access it from routes/controllers)
+// Attach io instance to app
 app.set("io", io);
 
-// ✅ Middleware
+// ✅ Allow ALL origins for Express
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// ✅ Handle preflight requests globally
+app.options("*", cors());
+
+// ✅ Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("combined", { stream: logger.stream }));
@@ -74,7 +68,7 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 // ✅ 404 handler
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Not Found - ${req.originalUrl}`,
