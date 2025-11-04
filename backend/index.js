@@ -1,6 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
 import connectDb from "./config/db.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -16,6 +15,8 @@ import orderRouter from "./routes/order.routes.js";
 import { socketHandler } from "./socket.js";
 import logger from "./utils/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -67,7 +68,7 @@ app.get("/", (req, res) => {
 // ✅ Error handling
 app.use(errorHandler);
 
-// ✅ 404 handler
+// ✅ 404 handler (important: put this AFTER all routes)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -87,8 +88,15 @@ process.on("uncaughtException", (err) => {
 });
 
 // ✅ Start Server
-const port = process.env.PORT || 5000;
-server.listen(port, async () => {
-  await connectDb();
-  logger.info(`🚀 Server running on port ${port}`);
+const PORT = process.env.PORT || 5000;
+
+// 🩵 IMPORTANT for Render: use "0.0.0.0" host so it binds publicly
+server.listen(PORT, "0.0.0.0", async () => {
+  try {
+    await connectDb();
+    logger.info(`🚀 Server running on port ${PORT}`);
+  } catch (err) {
+    logger.error("❌ Database connection failed", err);
+    process.exit(1);
+  }
 });
