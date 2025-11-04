@@ -58,6 +58,11 @@ app.use("/api/order", orderRouter);
 // ✅ Socket setup
 socketHandler(io);
 
+// ✅ Root route (for health check or testing)
+app.get("/", (req, res) => {
+  res.status(200).send("✅ LynqIt backend is running successfully 🚀");
+});
+
 // ✅ Global error handler
 app.use(errorHandler);
 
