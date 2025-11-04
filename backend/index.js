@@ -3,27 +3,28 @@ import dotenv from "dotenv";
 dotenv.config();
 import connectDb from "./config/db.js";
 import cookieParser from "cookie-parser";
-import authRouter from "./routes/auth.routes.js";
 import cors from "cors";
+import morgan from "morgan";
+import http from "http";
+import { Server } from "socket.io";
+
+import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import itemRouter from "./routes/item.routes.js";
 import shopRouter from "./routes/shop.routes.js";
 import orderRouter from "./routes/order.routes.js";
-import http from "http";
-import { Server } from "socket.io";
 import { socketHandler } from "./socket.js";
 import logger from "./utils/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
-import morgan from "morgan";
 
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Determine allowed origins dynamically
+// ✅ Allowed Origins (Use '*' in development only)
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://lynq-it.vercel.app"]
-    : ["http://localhost:5173", "*"];
+    : ["http://localhost:5173"];
 
 // ✅ Setup Socket.IO with CORS
 const io = new Server(server, {
@@ -34,13 +35,19 @@ const io = new Server(server, {
   },
 });
 
-// Attach io instance to app (for routes/controllers)
+// ✅ Attach io instance to app (so you can access it from routes/controllers)
 app.set("io", io);
 
-// ✅ Express middleware setup
+// ✅ Middleware
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -48,7 +55,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("combined", { stream: logger.stream }));
 
-// ✅ API Routes
+// ✅ Routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/shop", shopRouter);
@@ -58,45 +65,36 @@ app.use("/api/order", orderRouter);
 // ✅ Socket setup
 socketHandler(io);
 
-// ✅ Root route (for health check or testing)
+// ✅ Root route for health check
 app.get("/", (req, res) => {
   res.status(200).send("✅ LynqIt backend is running successfully 🚀");
 });
 
-// ✅ Global error handler
+// ✅ Error handling
 app.use(errorHandler);
 
 // ✅ 404 handler
 app.use((req, res, next) => {
-  const error = new Error(`Not Found - ${req.originalUrl}`);
-  error.statusCode = 404;
-  next(error);
+  res.status(404).json({
+    success: false,
+    message: `Not Found - ${req.originalUrl}`,
+  });
 });
 
-// ✅ Handle unhandled promise rejections
+// ✅ Global error safety
 process.on("unhandledRejection", (err) => {
-  logger.error("UNHANDLED REJECTION 💥 Shutting down...", {
-    error: err.name,
-    message: err.message,
-    stack: err.stack,
-  });
+  logger.error("UNHANDLED REJECTION 💥 Shutting down...", err);
   server.close(() => process.exit(1));
 });
 
-// ✅ Handle uncaught exceptions
 process.on("uncaughtException", (err) => {
-  logger.error("UNCAUGHT EXCEPTION 💥 Shutting down...", {
-    error: err.name,
-    message: err.message,
-    stack: err.stack,
-  });
+  logger.error("UNCAUGHT EXCEPTION 💥 Shutting down...", err);
   process.exit(1);
 });
 
-// ✅ Start server
+// ✅ Start Server
 const port = process.env.PORT || 5000;
-
-server.listen(port, () => {
-  connectDb();
-  logger.info(`🚀 Server started on port ${port}`);
+server.listen(port, async () => {
+  await connectDb();
+  logger.info(`🚀 Server running on port ${port}`);
 });

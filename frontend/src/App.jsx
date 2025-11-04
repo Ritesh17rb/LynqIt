@@ -43,7 +43,7 @@ useUpdateLocation()
   useGetMyOrders()
 
   useEffect(()=>{
-const socketInstance=io(serverUrl,{withCredentials:true})
+const socketInstance=io(serverUrl,{withCredentials:true,transports: ['websocket']})
 dispatch(setSocket(socketInstance))
 socketInstance.on('connect',()=>{
 if(userData){
