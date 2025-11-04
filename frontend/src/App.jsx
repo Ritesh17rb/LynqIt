@@ -30,7 +30,7 @@ import { setSocket, setTheme } from './redux/userSlice'
 import Footer from './components/Footer'
 import Nav from './components/Nav'
 
-export const serverUrl="http://localhost:8000"
+export const serverUrl = import.meta.env.VITE_SERVER_URL;
 function App() {
     const {userData, theme}=useSelector(state=>state.user)
     const dispatch=useDispatch()
